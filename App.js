@@ -9,6 +9,17 @@ import thunk from "redux-thunk";
 // Reducers
 import PlaceReducer from "./store/reducers/places";
 
+// DB
+import { init } from "./helpers/db";
+
+init()
+  .then(() => {
+    console.log("DB Running");
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
 const rootReducer = combineReducers({
   places: PlaceReducer,
 });

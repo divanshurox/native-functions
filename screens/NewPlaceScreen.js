@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   StyleSheet,
   Button,
@@ -10,10 +10,13 @@ import {
 import { useDispatch } from "react-redux";
 import { savePlace } from "../store/actions/places";
 import ImageSelector from "../components/ImageSelector";
+import LocationPicker from "../components/LocationPicker";
 
-const NewPlaceScreen = ({ navigation }) => {
+const NewPlaceScreen = ({ navigation, route }) => {
   const [title, setTitle] = useState("");
   const [img, setImage] = useState();
+  const [location, setLocation] = useState();
+
   const [valid, setValid] = useState(false);
 
   const dispatch = useDispatch();
@@ -22,12 +25,28 @@ const NewPlaceScreen = ({ navigation }) => {
     title: "Add New Place",
   });
 
+  const [sendLocation, setSendLocation] = useState();
+  useEffect(() => {
+    if (route.params?.location) {
+      setSendLocation(route.params.location);
+    }
+  }, [route.params?.location]);
+
   const titleChangeHandler = (text) => {
     if (text.length > 0) {
       setValid(true);
     }
     setTitle(text);
   };
+
+  const imageHandler = (uri) => {
+    setImage(uri);
+  };
+
+  const locationHandler = useCallback((loc) => {
+    console.log(loc);
+    setLocation(loc);
+  }, []);
 
   const savePlaceHandler = () => {
     if (!img) {
@@ -36,13 +55,11 @@ const NewPlaceScreen = ({ navigation }) => {
     const place = {
       title,
       img,
+      lat: location.lat,
+      lng: location.lng,
     };
     dispatch(savePlace(place));
     navigation.goBack();
-  };
-
-  const imageHandler = (uri) => {
-    setImage(uri);
   };
 
   return (
@@ -57,9 +74,13 @@ const NewPlaceScreen = ({ navigation }) => {
           />
           {!valid && <Text style={{ color: "tomato" }}>Set a Valid Title</Text>}
         </View>
-        <View>
-          <ImageSelector onImageTaken={imageHandler} />
-        </View>
+        <ImageSelector onImageTaken={imageHandler} />
+        <LocationPicker
+          navigation={navigation}
+          locate={sendLocation}
+          onLocationPicked={locationHandler}
+        />
+        {location && <Text style={{ marginLeft: 100 }}>{location.lat}</Text>}
         <Button
           disabled={!valid}
           title="Save Place"
